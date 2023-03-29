@@ -5,7 +5,7 @@ from django.core.cache import cache
 from django.urls import reverse
 from django import forms
 
-from ..models import Post, Group
+from ..models import Post, Group, Follow
 
 User = get_user_model()
 POST_AMOUNT_1 = 1
@@ -28,6 +28,7 @@ class PostURLTests(TestCase):
     def setUpClass(cls):
         super().setUpClass()
         cls.user = User.objects.create_user('auth')
+        cls.following = User.objects.create_user('Author')
         cls.group = Group.objects.create(slug='first_slug')
         cls.post = Post.objects.create(
             author=cls.user,
@@ -195,6 +196,7 @@ class PostURLTests(TestCase):
                                  POST_AMOUNT_3)
 
     def test_post_index_page_contains_cache(self):
+        """Для главной страницы работает функция кеширования"""
         cache_response = self.guest_client.get(reverse('posts:index'))
         Post.objects.all().delete()
         response = self.guest_client.get(reverse('posts:index'))
@@ -203,3 +205,49 @@ class PostURLTests(TestCase):
         response = self.guest_client.get(reverse("posts:index"))
         self.assertNotEqual(cache_response.content, response.content)
 
+    def test_auth_user_can_follow_the_author(self):
+        """Авторизованный пользователь может подписываться на авторов"""
+        count_follower = Follow.objects.count()
+        self.authorized_client.get(reverse(
+            'posts:profile_follow', kwargs={'username': self.following})
+        )
+        self.assertEqual(Follow.objects.count() - count_follower, 1)
+        self.assertTrue(
+            Follow.objects.filter(user=self.user,
+                                  author=self.following).exists()
+        )
+
+    def test_auth_user_can_unfollow_the_author(self):
+        """Авторизованный пользователь может отписываться от авторов"""
+        Follow.objects.create(user=self.user, author=self.following)
+        self.authorized_client.get(reverse(
+            'posts:profile_unfollow', kwargs={'username': self.following})
+        )
+        self.assertEqual(Follow.objects.count(), 0)
+        self.assertFalse(
+            Follow.objects.filter(user=self.user,
+                                  author=self.following).exists()
+        )
+
+    def test_new_post_appears_in_the_feed_for_follower(self):
+        """Новая запись пользователя появляется в ленте тех, кто на
+        него подписан"""
+        post_for_test = Post.objects.create(
+            author=self.following,
+            text='Пост для ленты подписчиков'
+        )
+        Follow.objects.create(user=self.user, author=self.following)
+        response = self.authorized_client.get(reverse('posts:follow_index'))
+        self.assertEqual(len(response.context['page_obj']), 1)
+        self.assertContains(response, post_for_test.text)
+
+    def test_new_post_doesnt_appears_in_the_feed_for_other(self):
+        """Новая запись пользователя не появляется в ленте тех, кто на
+        него не подписан"""
+        post_for_test = Post.objects.create(
+            author=self.following,
+            text='Пост для ленты подписчиков'
+        )
+        response = self.authorized_client.get(reverse('posts:follow_index'))
+        self.assertEqual(len(response.context['page_obj']), 0)
+        self.assertNotContains(response, post_for_test.text)

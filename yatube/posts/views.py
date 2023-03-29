@@ -2,7 +2,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.models import User
-from .models import Post, Group, Comment
+from .models import Post, Group, Comment, Follow
 from .forms import PostForm, CommentForm
 
 
@@ -43,11 +43,21 @@ def profile(request, username):
     posts = user.posts.all()
     page_obj = paginator(request, posts, 10)
     count = posts.count()
+    flag = user != request.user
+    if request.user.is_authenticated:
+        following = Follow.objects.filter(
+            user=request.user,
+            author=user
+        ).exists()
+    else:
+        following = False
     context = {
         'author': user,
         'username': username,
         'count': count,
         'page_obj': page_obj,
+        'following': following,
+        'not_the_current_user': flag,
     }
     return render(request, 'posts/profile.html', context)
 
@@ -126,3 +136,33 @@ def add_comment(request, post_id):
         comment.post = post
         comment.save()
     return redirect('posts:post_detail', post_id=post_id)
+
+
+@login_required
+def follow_index(request):
+    posts = Post.objects.filter(author__following__user=request.user)
+    page_obj = paginator(request, posts, 10)
+
+    context = {
+        'title': 'Подписки на авторов',
+        'page_obj': page_obj,
+    }
+    return render(request, 'posts/follow.html', context)
+
+
+@login_required
+def profile_follow(request, username):
+    author = get_object_or_404(User, username=username)
+    if author != request.user:
+        Follow.objects.get_or_create(user=request.user, author=author)
+
+    return redirect('posts:profile', username=username)
+
+
+@login_required
+def profile_unfollow(request, username):
+    author = get_object_or_404(User, username=username)
+    if author != request.user:
+        Follow.objects.filter(user=request.user, author=author).delete()
+
+    return redirect('posts:profile', username=username)

@@ -41,13 +41,7 @@
                 <label for="id_image">
                   Картинка
                 </label>
-                {% if is_edit %}
-                  На данный момент: <a href="../img/tolstoy.jpg">../img/tolstoy.jpg</a>
-                  <input type="checkbox" name="image-clear" id="image-clear_id">
-                  <label for="image-clear_id">Очистить</label><br>
-                  Изменить:
-                {% endif %}
-                <input type="file" name="image" accept="image/*" class="form-control" id="id_image">
+                {{ form.image|addclass:'form-control' }}
               </div>
               <div class="d-flex justify-content-end">
                 <button type="submit" class="btn btn-primary">
