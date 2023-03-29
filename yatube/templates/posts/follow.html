@@ -1,5 +1,4 @@
 {% extends 'base.html' %}
-{% load cache %}
 
 {% block title %}
   <title>{{ title }}</title>
@@ -8,13 +7,11 @@
 {% block content %}
   <!-- класс py-5 создает отступы сверху и снизу блока -->
   <div class="container py-5">
-    <h1>Последние обновления на сайте</h1>
+    <h1>Подписки на авторов</h1>
     {% include 'includes/switcher.html' %}
-    {% cache 20 index_page with page_obj %}
-      {% for post in page_obj %}
-        {% include 'includes/main.html' %}
-      {% endfor %}
-    {% endcache %}
+    {% for post in page_obj %}
+      {% include 'includes/main.html' %}
+    {% endfor %}
     {% include 'includes/paginator.html' %}
   </div>
 {% endblock %}
