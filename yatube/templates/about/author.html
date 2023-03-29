@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}
+  <title>Об авторе</title>
+{% endblock %}
+{% block content %}
+  <!-- класс py-5 создает отступы сверху и снизу блока -->
+  <div class="container py-5">
+    <h1>Привет, я автор</h1>
+    <p>
+      Тут я размещу информацию о себе, используя свои умения верстать.
+      Картинки, блоки, элементы бустрап. А может быть, просто напишу несколько абзацев текста.
+    </p>
+    <div class="text-center">
+      <img class="rounded" src="/static/img/why.jpg" alt="Об авторе">
+    </div>
+  </div>
+{% endblock %}

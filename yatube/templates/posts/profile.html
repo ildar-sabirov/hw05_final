@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block title %}
+  <title>Профайл пользователя {{ username }}</title>
+{% endblock %}
+{% block content %}
+  <!-- класс py-5 создает отступы сверху и снизу блока -->
+  <div class="container py-5">
+      <h1>Все посты пользователя: {{ author.get_full_name }} </h1>
+      <h3>Всего постов: {{ count }} </h3>
+      <br>
+      {% for post in page_obj %}
+        {% include 'includes/main.html' %}
+      {% endfor %}
+      {% include 'includes/paginator.html' %}
+  </div>
+{% endblock %}
