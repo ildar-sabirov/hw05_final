@@ -56,12 +56,10 @@ class Comment(models.Model):
     post = models.ForeignKey(
         Post,
         on_delete=models.CASCADE,
-        related_name='comments',
     )
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='comments',
         verbose_name='Автор',
     )
     text = models.TextField(
@@ -72,6 +70,9 @@ class Comment(models.Model):
         'Дата публикации комментария',
         auto_now_add=True,
     )
+
+    class Meta:
+        default_related_name = 'comments'
 
 
 class Follow(models.Model):
@@ -89,4 +90,11 @@ class Follow(models.Model):
     )
 
     def __str__(self):
-        return str(self.user) + '-->' + str(self.author)
+        return f'{self.user} подписался на {self.author}'
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'author'], name='unique_author_user_following'
+            )
+        ]

@@ -2,6 +2,7 @@ import shutil
 import tempfile
 
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
 from django.core.files.uploadedfile import SimpleUploadedFile
 
 from ..models import Post, Comment
@@ -32,6 +33,9 @@ class PostCreateFormTests(TestCase):
             author=cls.user,
             text='Текст поста',
         )
+
+    def setUp(self):
+        cache.clear()
 
     @classmethod
     def tearDownClass(cls):

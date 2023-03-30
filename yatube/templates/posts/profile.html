@@ -8,6 +8,7 @@
       <div class="mb-5">
         <h1>Все посты пользователя {{ author.get_full_name }}</h1>
         <h3>Всего постов: {{ count }}</h3>
+        <h3>Количество подписчиков: {{ follower_counts }}</h3>
         {% if not_the_current_user %}
           <br>
           {% if following %}

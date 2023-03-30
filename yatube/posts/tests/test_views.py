@@ -1,6 +1,10 @@
+import shutil
+import tempfile
+
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import Client, TestCase
+from django.test import Client, TestCase, override_settings
 from django.core.cache import cache
 from django.urls import reverse
 from django import forms
@@ -12,6 +16,7 @@ POST_AMOUNT_1 = 1
 POST_AMOUNT_10 = 10
 POST_AMOUNT_3 = 3
 LAST_POST_COUNT_13 = 13
+TEMP_MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
 SMALL_GIF = (
     b'\x47\x49\x46\x38\x39\x61\x02\x00'
     b'\x01\x00\x80\x00\x00\x00\x00\x00'
@@ -22,6 +27,7 @@ SMALL_GIF = (
 )
 
 
+@override_settings(MEDIA_ROOT=TEMP_MEDIA_ROOT)
 class PostURLTests(TestCase):
 
     @classmethod
@@ -37,6 +43,11 @@ class PostURLTests(TestCase):
             image=SimpleUploadedFile(
                 name='small.gif', content=SMALL_GIF, content_type='image/gif')
         )
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+        shutil.rmtree(TEMP_MEDIA_ROOT, ignore_errors=True)
 
     def setUp(self):
         self.guest_client = Client()
