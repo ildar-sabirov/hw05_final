@@ -14,7 +14,7 @@ def paginator(request, posts, select_limit):
 
 
 def index(request):
-    post_list = Post.objects.all()
+    post_list = Post.objects.all().select_related('author')
     page_obj = paginator(request, post_list, 10)
     title = 'Последние обновления на сайте'
     context = {
@@ -43,6 +43,7 @@ def profile(request, username):
     posts = user.posts.all()
     page_obj = paginator(request, posts, 10)
     count = posts.count()
+    follower_counts = Follow.objects.filter(author=user).count()
     flag = user != request.user
     if request.user.is_authenticated:
         following = Follow.objects.filter(
@@ -58,6 +59,7 @@ def profile(request, username):
         'page_obj': page_obj,
         'following': following,
         'not_the_current_user': flag,
+        'follower_counts': follower_counts,
     }
     return render(request, 'posts/profile.html', context)
 
