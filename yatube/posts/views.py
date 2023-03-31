@@ -14,7 +14,7 @@ def paginator(request, posts, select_limit):
 
 
 def index(request):
-    post_list = Post.objects.all().select_related('author')
+    post_list = Post.objects.all().select_related('author', 'group')
     page_obj = paginator(request, post_list, 10)
     title = 'Последние обновления на сайте'
     context = {
@@ -26,7 +26,7 @@ def index(request):
 
 def group_posts(request, slug):
     group = get_object_or_404(Group, slug=slug)
-    post_list = group.group.all()
+    post_list = group.group.all().select_related('author')
     page_obj = paginator(request, post_list, 10)
     template = 'posts/group_list.html'
     title = f'Записи сообщества {group}'
@@ -40,7 +40,7 @@ def group_posts(request, slug):
 
 def profile(request, username):
     user = get_object_or_404(User, username=username)
-    posts = user.posts.all()
+    posts = user.posts.all().select_related('group')
     page_obj = paginator(request, posts, 10)
     count = posts.count()
     follower_counts = Follow.objects.filter(author=user).count()
@@ -142,7 +142,9 @@ def add_comment(request, post_id):
 
 @login_required
 def follow_index(request):
-    posts = Post.objects.filter(author__following__user=request.user)
+    posts = Post.objects.filter(
+        author__following__user=request.user
+    ).select_related('author', 'group')
     page_obj = paginator(request, posts, 10)
 
     context = {
