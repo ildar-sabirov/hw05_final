@@ -4,6 +4,8 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.models import User
 from .models import Post, Group, Comment, Follow
 from .forms import PostForm, CommentForm
+from .serializers import PostSerializer
+from django.http import JsonResponse
 
 
 def paginator(request, posts, select_limit):
@@ -170,3 +172,10 @@ def profile_unfollow(request, username):
         Follow.objects.filter(user=request.user, author=author).delete()
 
     return redirect('posts:profile', username=username)
+
+
+def get_post(request, pk):
+    if request.method == 'GET':
+        post = get_object_or_404(Post, id=pk)
+        serializer = PostSerializer(post)
+        return JsonResponse(serializer.data)
